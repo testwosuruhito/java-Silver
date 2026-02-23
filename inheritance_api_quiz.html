@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Java SE Silver 継承・例外・API編</title>
+    <style>
+        body { font-family: sans-serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 20px; background-color: #fdfcf0; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        pre { background: #2d2d2d; color: #ccc; padding: 15px; border-radius: 5px; overflow-x: auto; }
+        button { background: #6f42c1; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin: 5px; }
+        button:hover { background: #5a32a3; }
+        .ans { display: none; margin-top: 15px; padding: 10px; border-left: 5px solid #fd7e14; background: #fff5eb; }
+        .correct { color: #d9480f; font-weight: bold; }
+        .label { font-weight: bold; color: #333; margin-top: 10px; display: block; }
+    </style>
+</head>
+<body>
+    <h1>☕ Java SE Silver 復習（継承・例外・スコープ）</h1>
+    <div id="quiz-container"></div>
+
+    <script>
+        const quizData = [
+            {
+                q: "次の継承に関するコードで、コンパイルエラーになる行はどれですか？",
+                code: "class Animal { void eat() {} }\nclass Dog extends Animal { void bark() {} }\n\n// mainメソッド内\nAnimal a = new Dog(); // (1)\na.eat();              // (2)\na.bark();             // (3)",
+                options: ["A. (3)", "B. すべてエラーにならない", "C. (2)", "D. (1)"],
+                ans: "A",
+                detail: "変数aの型（リモコン）は Animal です。Animal設計図には bark() ボタンがないため、たとえ実体が Dog であっても呼び出すことはできません。これをポリモーフィズムにおける型の制限と呼びます。"
+            },
+            {
+                q: "例外処理の try-catch-finally 文において、必ず実行されるブロックはどれですか？",
+                options: ["A. finally ブロック", "B. すべてのブロックが必ず実行される", "C. try ブロック", "D. catch ブロック"],
+                ans: "A",
+                detail: "例外の発生有無に関わらず、また途中に return 文があったとしても、finally ブロックは必ず実行されます（System.exit()などで強制終了した場合を除く）。"
+            },
+            {
+                q: "Stringクラスについて正しい説明を選んでください。",
+                options: [
+                    "A. StringBuilderよりも動作が高速である。",
+                    "B. 基本データ型の一つである。",
+                    "C. 内容の比較には == を使うのが一般的である。",
+                    "D. Stringオブジェクトは不変（Immutable）であり、一度作成すると内容を変更できない。"
+                ],
+                ans: "D",
+                detail: "Stringは一度作成されると中身を変更できません。replace等のメソッドは常に「新しいStringインスタンス」を返します。また、Stringは基本型ではなく「クラス（参照型）」です。"
+            },
+            {
+                q: "次のコードを実行したときの結果はどうなりますか？",
+                code: "int x = 10;\nif (x > 5) { int y = 20; }\nSystem.out.println(y);",
+                options: ["A. 0", "B. コンパイルエラー", "C. 20", "D. 実行時に例外が発生する"],
+                ans: "B",
+                detail: "変数のスコープ（有効範囲）は、その変数が宣言された { } ブロック内のみです。y は if ブロック内で宣言されているため、ブロックの外側では消滅しており、参照できません。"
+            }
+        ];
+
+        const container = document.getElementById('quiz-container');
+        quizData.forEach((data, index) => {
+            const card = document.createElement('div');
+            card.className = 'card';
+            let optionsHtml = data.options ? data.options.map(opt => `<div>${opt}</div>`).join('') : '';
+            card.innerHTML = `
+                <h3>問 ${index + 1}</h3>
+                <p>${data.q}</p>
+                <pre><code>${data.code || ''}</code></pre>
+                ${optionsHtml ? `<div class="label">選択肢：</div>${optionsHtml}` : ''}
+                <button onclick="toggleAns(${index})">答え・解説を見る</button>
+                <div id="ans-${index}" class="ans">
+                    <span class="correct">正解： ${data.ans}</span><br><br>
+                    <span class="label">【解説】</span>${data.detail}
+                </div>
+            `;
+            container.appendChild(card);
+        });
+
+        function toggleAns(index) {
+            const ans = document.getElementById(`ans-${index}`);
+            ans.style.display = ans.style.display === 'block' ? 'none' : 'block';
+        }
+    </script>
+</body>
+</html>
