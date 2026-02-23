@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Java SE Silver 例外・String・ArrayList編</title>
+    <style>
+        body { font-family: sans-serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 20px; background-color: #eef2f3; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        pre { background: #2d2d2d; color: #ccc; padding: 15px; border-radius: 5px; overflow-x: auto; }
+        button { background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin: 5px; }
+        button:hover { background: #218838; }
+        .ans { display: none; margin-top: 15px; padding: 10px; border-left: 5px solid #007bff; background: #f0f7ff; }
+        .correct { color: #007bff; font-weight: bold; }
+        .label { font-weight: bold; color: #333; margin-top: 10px; display: block; }
+    </style>
+</head>
+<body>
+    <h1>☕ Java SE Silver 応用編（例外・String・API）</h1>
+    <div id="quiz-container"></div>
+
+    <script>
+        const quizData = [
+            {
+                q: "チェック例外を投げる doWork() を呼び出す際、文法的に正しいコードはどれですか？（複数選択可）",
+                code: "A. try { doWork(); } catch (Exception e) { }\nB. 何もしない（そのまま呼び出す）\nC. メソッド宣言に throws Exception を追加し、そのまま doWork(); を呼ぶ\nD. finallyブロックだけで囲む",
+                ans: "A と C",
+                detail: "Aはその場で解決（try-catch）、Cは責任を上に投げる（throws）方法です。これら一方が書かれていればコンパイルが通ります。"
+            },
+            {
+                q: "次のコードの実行結果はどうなりますか？",
+                code: "String s = \"Java\";\ns.concat(\" SE\");\nSystem.out.println(s);",
+                options: ["A. Java", "B. Java SE", "C. コンパイルエラー"],
+                ans: "A",
+                detail: "Stringは不変（Immutable）です。concatの結果をsに代入し直さない限り、s自体の中身は変わりません。"
+            },
+            {
+                q: "ArrayListの要素数を取得するための正しいメソッドはどれですか？",
+                code: "ArrayList<String> list = new ArrayList<>();",
+                options: ["A. list.count()", "B. list.length()", "C. list.length", "D. list.size()"],
+                ans: "D",
+                detail: "ArrayList（コレクション）の要素数は size() メソッドで取得します。配列は .length 、Stringは .length() なので混合に注意！"
+            },
+            {
+                q: "チェック例外（Exceptionの子クラス）を投げるメソッドを呼び出す側で、必須となる処理はどれですか？",
+                options: [
+                    "A. 必ずtry-catchで囲まなければならない。",
+                    "B. finallyブロックを必ず記述しなければならない。",
+                    "C. 特に何も処理しなくてもコンパイルは通る。",
+                    "D. try-catchで囲むか、さらにthrowsで宣言するかのどちらかが必要。"
+                ],
+                ans: "D",
+                detail: "Javaコンパイラはチェック例外を検知すると、解決(try-catch)か報告(throws)を求めます。これが「例外のバケツリレー」です。"
+            }
+        ];
+
+        const container = document.getElementById('quiz-container');
+        quizData.forEach((data, index) => {
+            const card = document.createElement('div');
+            card.className = 'card';
+            let optionsHtml = data.options ? data.options.map(opt => `<div>${opt}</div>`).join('') : '';
+            card.innerHTML = `
+                <h3>問 ${index + 1}</h3>
+                <p>${data.q}</p>
+                <pre><code>${data.code || ''}</code></pre>
+                ${optionsHtml ? `<div class="label">選択肢：</div>${optionsHtml}` : ''}
+                <button onclick="toggleAns(${index})">答え・解説を見る</button>
+                <div id="ans-${index}" class="ans">
+                    <span class="correct">正解： ${data.ans}</span><br><br>
+                    <span class="label">【解説】</span>${data.detail}
+                </div>
+            `;
+            container.appendChild(card);
+        });
+
+        function toggleAns(index) {
+            const ans = document.getElementById(`ans-${index}`);
+            ans.style.display = ans.style.display === 'block' ? 'none' : 'block';
+        }
+    </script>
+</body>
+</html>
