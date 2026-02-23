@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Java SE Silver Javaコンパイラ（翻訳）系</title>
+    <style>
+        body { font-family: sans-serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 20px; background-color: #f4f4f9; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        pre { background: #2d2d2d; color: #ccc; padding: 15px; border-radius: 5px; overflow-x: auto; }
+        button { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin: 5px; }
+        button:hover { background: #0056b3; }
+        .ans { display: none; margin-top: 15px; padding: 10px; border-left: 5px solid #28a745; background: #e9f7ef; }
+        .correct { color: #28a745; font-weight: bold; }
+        .label { font-weight: bold; color: #333; margin-top: 10px; display: block; }
+    </style>
+</head>
+<body>
+    <h1>☕ Java SE Silver Javaコンパイラ（翻訳）系</h1>
+    <div id="quiz-container"></div>
+
+    <script>
+        const quizData = [
+            {
+                q: "次のコードを実行したとき、どのような結果になりますか？",
+                code: "public class Exam {\n  public static void main(String[] args) {\n    int[] a;              // (1)\n    int[] b = new int[1]; // (2)\n    if (b[0] == 0) {\n        a = new int[2];   // (3)\n    }\n    System.out.println(a.length); // (4)\n  }\n}",
+                options: ["1. 0 と表示される", "2. 1 と表示される", "3. 2 と表示される", "4. (4) の行でコンパイルエラーになる", "5. 実行時に例外が発生する"],
+                ans: "4",
+                detail: "ローカル変数は使用前に必ず初期化されている必要があります。このコードでは if 文の条件が真のときのみ a が初期化されますが、Javaコンパイラは「初期化されない可能性がある」と判断し、(4)でエラーを出します。"
+            },
+            {
+                q: "次のコードのうち、コンパイルエラーになるものをすべて選択してください。",
+                code: "var a = 100;\nvar b;\nvar c = {1, 2, 3};\nvar d = new int[]{1, 2, 3};",
+                options: ["1. var a = 100;", "2. var b;", "3. var c = {1, 2, 3};", "4. var d = new int[]{1, 2, 3};"],
+                ans: "2 と 3",
+                detail: "var は型推論のため「宣言と同時に初期化」が必須です。また、配列の省略記法 {1, 2, 3} は左辺に具体的な型（int[]など）がないと型が決定できないため、var と組み合わせて使うことはできません。"
+            },
+            {
+                q: "次の配列宣言のうち、実行時に3つの要素すべてに null が入っているものはどれですか？",
+                code: "A. char[] c = new char[3];\nB. int[] i = new int[3];\nC. boolean[] b = new boolean[3];\nD. String[] s = new String[3];",
+                options: ["A", "B", "C", "D"],
+                ans: "D",
+                detail: "基本データ型（char, int, boolean等）の配列は 0 や false で初期化されます。参照型（Stringやクラス）の配列のみ、要素のデフォルト値が null になります。"
+            },
+            {
+                q: "次のコードを実行したときの結果はどうなりますか？",
+                code: "String s1 = \"Java\";\nString s2 = new String(\"Java\");\nSystem.out.println(s1 == s2);",
+                options: ["A. コンパイルエラー", "B. false と表示される", "C. 実行時に例外が発生する", "D. true と表示される"],
+                ans: "B",
+                detail: "s1 は文字列プールを参照しますが、new String() は常に新しいメモリ領域を確保します。== 演算子は参照先（住所）を比較するため、別の場所を指しているこれらは false と判定されます。"
+            },
+            {
+                q: "以下のうち、ローカル変数として宣言した際に、初期化せずに使用してもコンパイルエラーにならないものはどれですか？",
+                code: "A. 該当するものはない\nB. String型\nC. int型\nD. boolean型",
+                options: ["A", "B", "C", "D"],
+                ans: "A",
+                detail: "Javaのローカル変数は、型に関わらず自動初期化されません。使用前に必ず明示的な代入が必要です。"
+            },
+            {
+                q: "次のコードの結果を選択してください。",
+                code: "int[] a = new int[2];\na[0] = 10;\nint[] b = a;\nb[1] = 20;\nSystem.out.println(a[1]);",
+                options: ["A. 20", "B. コンパイルエラー", "C. 実行時に例外が発生する", "D. 0"],
+                ans: "A",
+                detail: "配列は参照型です。b = a によって同じ配列の実体を指すようになるため、b[1] への操作は a[1] にも反映されます。"
+            },
+            {
+                q: "次のコードを実行したときの結果はどうなりますか？",
+                code: "String[] array = new String[1];\nSystem.out.println(array[0].toUpperCase());",
+                options: ["A. 実行時に NullPointerException が発生する", "B. コンパイルエラーになる", "C. null と表示される", "D. 空文字が表示される"],
+                ans: "A",
+                detail: "array[0] は null で初期化されています。null に対してメソッドを呼び出そうとすると、実行時に NullPointerException が発生します。"
+            },
+            {
+                q: "Javaの識別子（変数名など）として「使えない」ものはどれですか？",
+                code: "A. 変数名\nB. _variable\nC. 2ndVariable\nD. $money",
+                options: ["A", "B", "C", "D"],
+                ans: "C",
+                detail: "識別子の先頭に数字を使うことはできません。記号は「_」と「$」のみ使用可能です。"
+            },
+            {
+                q: "次のコードを実行したときの結果はどうなりますか？",
+                code: "int a = 10;\nint b = a++;\nSystem.out.println(b);",
+                options: ["A. 11", "B. コンパイルエラー", "C. 10", "D. 0"],
+                ans: "C",
+                detail: "後置インクリメント (a++) は、「現在の値を返してから、値を増やす」という動きをします。そのため、b には増える前の 10 が代入されます。"
+            }
+        ];
+
+        const container = document.getElementById('quiz-container');
+        quizData.forEach((data, index) => {
+            const card = document.createElement('div');
+            card.className = 'card';
+
+            let optionsHtml = data.options ? data.options.map(opt => `<div>${opt}</div>`).join('') : '';
+
+            card.innerHTML = `
+                <h3>問 ${index + 1}</h3>
+                <p>${data.q}</p>
+                <pre><code>${data.code}</code></pre>
+                ${optionsHtml ? `<div class="label">選択肢：</div>${optionsHtml}` : ''}
+                <button onclick="toggleAns(${index})">答え・解説を見る</button>
+                <div id="ans-${index}" class="ans">
+                    <span class="correct">正解： ${data.ans}</span><br><br>
+                    <span class="label">【解説】</span>${data.detail}
+                </div>
+            `;
+            container.appendChild(card);
+        });
+
+        function toggleAns(index) {
+            const ans = document.getElementById(`ans-${index}`);
+            ans.style.display = ans.style.display === 'block' ? 'none' : 'block';
+        }
+    </script>
+</body>
+</html>
